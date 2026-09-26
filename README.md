@@ -1,6 +1,8 @@
 <div align="center">
 
-# Expense Tracker — Smart Personal Finance Dashboard for Managing & Visualizing Expenses
+# Expense Tracker
+
+### Smart Personal Finance Dashboard for Managing & Visualizing Expenses
 
 <a href="#license">
   <img alt="License: Apache-2.0" src="https://img.shields.io/badge/License-Apache--2.0-blue.svg">
@@ -14,13 +16,12 @@
 <a href="https://react.dev/" target="_blank">
   <img alt="React" src="https://img.shields.io/badge/React-18-61DAFB">
 </a>
-<a href="#">
-  <img alt="Build" src="https://img.shields.io/badge/build-passing-brightgreen">
-</a>
+
+<br/><br/>
+
+**A full-stack personal finance application for tracking expenses, managing recurring payments, and visualizing spending patterns.**
 
 </div>
-
-### Friendly, data‑driven expense tracking with analytics, budgets, recurring payments, and rich visualizations.
 
 ---
 
@@ -36,79 +37,120 @@
 - [Configuration](#configuration)
 - [Roadmap](#roadmap)
 - [License](#license)
-- [Contact](#contact)
 
 ---
 
 ## Overview
 
-Expense Tracker is a full‑stack web application to record, categorize, and analyze personal spending. It helps you:
+**Expense Tracker** is a full-stack personal finance management application built using **React, TypeScript, Django, and Django REST Framework**.
 
-- Understand where your money goes
+It provides users with a simple and interactive way to record, organize, and analyze their expenses.
+
+The application helps users:
+
+- Record and manage daily expenses
+- Categorize transactions for better organization
 - Track recurring expenses and subscriptions
-- Visualize spending trends over time
-- Export/Import data for backups or migration
-
-With a clean UI, fast search, and actionable charts, Expense Tracker makes daily budgeting effortless.
+- Analyze spending patterns using charts and reports
+- Search and filter transaction history
+- Import and export expense data using CSV
+- Manage personal finance data through a responsive dashboard
 
 ---
 
 ## Key Features
 
-- **Authentication with JWT**: Secure login and protected endpoints.
-- **Expense CRUD**: Add, edit, delete, and search expenses.
-- **Categories & Tags**: Organize spending by category and keyword.
-- **Recurring Payments**: Automate periodic expenses (daily, weekly, monthly, yearly).
-- **Dashboards & Analytics**: Summaries, trends, and category breakdowns.
-- **Interactive Charts**: Visualize monthly and category spend.
-- **Reports**: Overview and detailed history views.
-- **CSV Import/Export**: Move data easily via CSV (powered by PapaParse).
-- **Responsive UI**: Modern, mobile‑friendly layout with Tailwind CSS.
-- **API Fallback**: If backend is unavailable, selected features gracefully fallback to local storage for demos.
+- **JWT Authentication** — Secure user authentication with protected API endpoints.
+- **Expense Management** — Add, edit, delete, and search expenses.
+- **Categories & Tags** — Organize transactions using categories and keywords.
+- **Recurring Payments** — Manage daily, weekly, monthly, and yearly recurring expenses.
+- **Dashboard Analytics** — View spending summaries and financial insights.
+- **Interactive Charts** — Visualize monthly and category-wise spending.
+- **Transaction History** — Search and filter previous expenses.
+- **Reports** — Analyze expenses based on categories and time periods.
+- **CSV Import/Export** — Import and export expense data using PapaParse.
+- **Responsive Design** — Mobile-friendly interface built with Tailwind CSS.
+- **API Integration** — React frontend communicates with Django through REST APIs.
+- **Local Storage Fallback** — Selected frontend functionality can use local storage when the backend is unavailable.
 
 ---
 
 ## Demo / Screenshots
 
-<p align="center">
-  <img src="Img/Dashboard.png" alt="Dashboard" width="800" />
-  <br/>
-  <em>Dashboard — at‑a‑glance overview of spending</em>
-</p>
+### Dashboard
 
 <p align="center">
-  <img src="Img/Add_Expenses.png" alt="Add Expenses" width="800" />
+  <img src="Img/Dashboard.png" alt="Expense Tracker Dashboard" width="800" />
   <br/>
-  <em>Add Expenses — fast input with categories and notes</em>
+  <em>Dashboard providing an overview of spending and expense activity.</em>
 </p>
 
-<p align="center">
-  <img src="Img/History.png" alt="History" width="800" />
-  <br/>
-  <em>History — filterable, searchable list of all transactions</em>
-</p>
+### Add Expense
 
 <p align="center">
-  <img src="Img/Recurring.png" alt="Recurring" width="800" />
+  <img src="Img/Add_Expenses.png" alt="Add Expense" width="800" />
   <br/>
-  <em>Recurring — manage subscriptions and periodic expenses</em>
+  <em>Add expenses with categories, amount, date, and additional information.</em>
 </p>
 
+### Transaction History
+
 <p align="center">
-  <img src="Img/Reports.png" alt="Reports" width="800" />
+  <img src="Img/History.png" alt="Expense History" width="800" />
   <br/>
-  <em>Reports — category and time‑based analytics</em>
+  <em>Searchable and filterable history of recorded transactions.</em>
+</p>
+
+### Recurring Expenses
+
+<p align="center">
+  <img src="Img/Recurring.png" alt="Recurring Expenses" width="800" />
+  <br/>
+  <em>Manage subscriptions and recurring payments.</em>
+</p>
+
+### Reports & Analytics
+
+<p align="center">
+  <img src="Img/Reports.png" alt="Expense Reports" width="800" />
+  <br/>
+  <em>Analyze expenses using category-based and time-based reports.</em>
 </p>
 
 ---
 
 ## Tech Stack
 
-- **Frontend**: React 18, TypeScript, Vite, React Router, Tailwind CSS, Recharts, React Hot Toast
-- **Backend**: Django 4.2, Django REST Framework, Simple JWT, django‑cors‑headers, Pillow
-- **Database**: SQLite (dev). Easily swappable to PostgreSQL/MySQL.
-- **Auth**: JWT tokens via DRF SimpleJWT
-- **Utilities**: Axios, date‑fns, PapaParse
+### Frontend
+
+- React 18
+- TypeScript
+- Vite
+- React Router
+- Tailwind CSS
+- Recharts
+- Axios
+- React Hot Toast
+- date-fns
+- PapaParse
+
+### Backend
+
+- Python
+- Django 4.2
+- Django REST Framework
+- Simple JWT
+- django-cors-headers
+- Pillow
+
+### Database
+
+- SQLite for development
+- Can be configured with PostgreSQL or MySQL
+
+### Authentication
+
+- JWT authentication using Django REST Framework SimpleJWT
 
 ---
 
@@ -116,123 +158,285 @@ With a clean UI, fast search, and actionable charts, Expense Tracker makes daily
 
 ```mermaid
 flowchart LR
-  subgraph Frontend
-    A[React + Vite]
-    D[Recharts]
-    E[Tailwind]
-  end
 
-  subgraph Backend
-    B[Django REST API]
-    F[JWT Auth]
-  end
+    subgraph Frontend
+        A[React + TypeScript + Vite]
+        D[Recharts]
+        E[Tailwind CSS]
+    end
 
-  C[(Database: SQLite / Postgres / MySQL)]
+    subgraph Backend
+        B[Django REST API]
+        F[JWT Authentication]
+    end
 
-  A -->|Axios / JSON| B
-  B -->|ORM| C
-  A --> D
-  A --> E
-  B --> F
+    C[(Database)]
+
+    A -->|Axios / JSON| B
+    B -->|Django ORM| C
+    A --> D
+    A --> E
+    B --> F
 ```
 
-- **Frontend** handles UI, routing, and data fetching via Axios
-- **Backend** exposes RESTful endpoints (JWT‑protected)
-- **Database** persists users, expenses, categories, and recurring rules
-- **Visualization** uses Recharts for interactive insights
+### Application Flow
+
+```text
+User
+  │
+  ▼
+React + TypeScript Frontend
+  │
+  │ HTTP / JSON
+  │ Axios
+  ▼
+Django REST Framework API
+  │
+  ├──── JWT Authentication
+  │
+  ▼
+Django ORM
+  │
+  ▼
+Database
+```
+
+The **frontend** handles the user interface, routing, API communication, and data visualization.
+
+The **backend** exposes RESTful API endpoints and manages authentication, application logic, and database operations.
+
+The **database** stores users, expenses, categories, and recurring expense information.
 
 ---
 
 ## Installation
 
-> Prerequisites: Node.js 18+ (preferably 20+), Python 3.10+, Git
+### Prerequisites
 
-1. **Clone the repository**
+Make sure the following are installed:
+
+- Node.js 18+ (20+ recommended)
+- npm
+- Python 3.10+
+- Git
+
+### 1. Clone the Repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/theakp03/Expense_Tracker.git
 cd Expense_Tracker
 ```
 
-2. **Backend setup (Django)**
+### 2. Create a Python Virtual Environment
 
-```bash
-# (Windows PowerShell)
+#### Windows PowerShell
+
+```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install -r backend/requirements.txt
+```
 
-# Migrate DB and create a superuser
+#### Windows Command Prompt
+
+```cmd
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+#### Linux / macOS
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### 3. Install Backend Dependencies
+
+From the project root:
+
+```bash
+pip install -r backend/requirements.txt
+```
+
+Move to the backend directory:
+
+```bash
 cd backend
+```
+
+Run database migrations:
+
+```bash
 python manage.py migrate
+```
+
+Create an admin account if required:
+
+```bash
 python manage.py createsuperuser
 ```
 
-3. **Frontend setup (React + Vite)**
+Start the Django server:
 
 ```bash
-cd ..  # back to project root
+python manage.py runserver
+```
+
+By default, Django runs at:
+
+```text
+http://localhost:8000
+```
+
+### 4. Install Frontend Dependencies
+
+Open another terminal in the project root:
+
+```bash
 npm install
+```
+
+Start the Vite development server:
+
+```bash
+npm run dev
+```
+
+The frontend normally runs at:
+
+```text
+http://localhost:5173
 ```
 
 ---
 
 ## Usage
 
-1. **Start the backend** (Django runs on `http://localhost:8000`)
+### Start Backend
+
+From the project root:
 
 ```bash
 cd backend
 python manage.py runserver
 ```
 
-2. **Start the frontend** (Vite runs on `http://localhost:5173` by default)
+### Start Frontend
+
+Open another terminal in the project root:
 
 ```bash
-cd ..
 npm run dev
 ```
 
-3. **Build frontend for production**
+Open the application in your browser:
+
+```text
+http://localhost:5173
+```
+
+Users can register or log in through the application. Protected API requests require a valid JWT access token.
+
+### Production Build
+
+To generate an optimized frontend production build:
 
 ```bash
 npm run build
 ```
 
-> Login with your superuser or register via the app. Protected API calls require a valid JWT; the frontend automatically attaches stored tokens.
+The generated files will be available inside the `dist` directory.
 
 ---
 
 ## Configuration
 
-- **API Base URL**: The frontend targets the Django API at `http://localhost:8000/api`.
-  - Update `src/services/api.ts` constant `API_BASE_URL` if your backend host/port differs.
-- **CORS**: Ensure your backend allows the frontend origin (configured via `django-cors-headers`).
-- **Database**: Default is SQLite (see `backend/settings.py`). For Postgres/MySQL, update `DATABASES` settings and install the appropriate driver.
+### API Base URL
+
+During local development, the frontend communicates with the Django backend.
+
+Default API base URL:
+
+```text
+http://localhost:8000/api
+```
+
+If the backend runs on another host or port, update the frontend API configuration accordingly.
+
+### CORS
+
+The Django backend uses `django-cors-headers`.
+
+Make sure the frontend origin is allowed during development:
+
+```text
+http://localhost:5173
+```
+
+### Database
+
+SQLite is used for local development.
+
+The Django database configuration can be changed to use databases such as:
+
+- PostgreSQL
+- MySQL
+
+The appropriate database driver and Django configuration must be added before switching databases.
+
+---
+
+## Authentication Flow
+
+The application uses **JWT-based authentication**.
+
+```text
+Register / Login
+       │
+       ▼
+Django REST API
+       │
+       ▼
+Access + Refresh Token
+       │
+       ▼
+React Frontend
+       │
+       ▼
+Authenticated API Requests
+```
+
+The frontend uses the JWT access token when making requests to protected API endpoints.
 
 ---
 
 ## Roadmap
 
-- [ ] Budgets and alerts (monthly/weekly limits)
-- [ ] Multi‑currency support and FX conversions
-- [ ] Advanced filtering and saved views
-- [ ] Export to XLSX and Google Sheets
-- [ ] PWA support and offline mode
-- [ ] Dark mode and theme presets
+- [ ] Budget limits and spending alerts
+- [ ] Multi-currency support
+- [ ] Currency conversion
+- [ ] Advanced expense filtering
+- [ ] Saved filter views
+- [ ] XLSX export
+- [ ] Google Sheets integration
+- [ ] Progressive Web App (PWA) support
+- [ ] Offline mode
+- [ ] Dark mode and custom themes
+- [ ] Production database configuration
+- [ ] Cloud deployment
 
 ---
 
 ## License
 
-This project is licensed under the **Apache License 2.0**. See the [`LICENSE`](LICENSE) file for details.
+This project is distributed under the **Apache License 2.0**.
+
+See the [`LICENSE`](LICENSE) file for complete license information.
 
 ---
 
-## Contact
+## Repository
 
-- **Author**: Buildwith.18
-- **GitHub**: [github.com/Buildwith18](https://github.com/Buildwith18)
-- **Email**: [buildwith.18@gmail.com](mailto:buildwith.18@gmail.com)
+**GitHub:** https://github.com/theakp03/Expense_Tracker
 
-If you find this useful, consider starring the repo. Thanks!
+If you find this project useful, consider giving the repository a star.
