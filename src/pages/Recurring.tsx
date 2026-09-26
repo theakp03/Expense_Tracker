@@ -1,0 +1,499 @@
+import React, { useState } from 'react';
+import { useEffect } from 'react';
+import { recurringApi, RecurringExpense } from '../services/api';
+import { useExpenses } from '../context/ExpenseContext';
+import Layout from '../components/Layout/Layout';
+import { Plus, RefreshCw, Edit, Trash2, Calendar } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { formatIndianCurrency } from '../utils/currency';
+
+const Recurring: React.FC = () => {
+  const { refreshExpenses } = useExpenses();
+  const [recurringExpenses, setRecurringExpenses] = useState<RecurringExpense[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingRecurring, setEditingRecurring] = useState<RecurringExpense | null>(null);
+  const [formData, setFormData] = useState({
+    title: '',
+    amount: '',
+    category: '',
+    frequency: 'monthly' as const,
+    start_date: new Date().toISOString().split('T')[0],
+    end_date: '',
+    description: ''
+  });
+
+  const categories = ['Food', 'Transport', 'Entertainment', 'Utilities', 'Healthcare', 'Shopping', 'Education', 'Travel', 'Other'];
+  const frequencies = [
+    { value: 'daily', label: 'Daily' },
+    { value: 'weekly', label: 'Weekly' },
+    { value: 'monthly', label: 'Monthly' },
+    { value: 'yearly', label: 'Yearly' }
+  ];
+
+  useEffect(() => {
+    fetchRecurringExpenses();
+  }, []);
+
+  const fetchRecurringExpenses = async () => {
+    try {
+      setIsLoading(true);
+      setError('');
+      const data = await recurringApi.getRecurringExpenses();
+      
+      // Ensure data is an array
+      if (!Array.isArray(data)) {
+        console.warn('Recurring expenses is not an array:', data);
+        setRecurringExpenses([]);
+        return;
+      }
+      
+      setRecurringExpenses(data);
+    } catch (err) {
+      console.error('Failed to fetch recurring expenses:', err);
+      setError('Failed to fetch recurring expenses');
+      toast.error('Failed to fetch recurring expenses');
+      // Set empty array on error to prevent map errors
+      setRecurringExpenses([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const getCategoryColor = (category: string) => {
+    const colors: Record<string, string> = {
+      food: 'bg-orange-100 text-orange-800',
+      transport: 'bg-blue-100 text-blue-800',
+      entertainment: 'bg-purple-100 text-purple-800',
+      utilities: 'bg-green-100 text-green-800',
+      healthcare: 'bg-red-100 text-red-800',
+      shopping: 'bg-pink-100 text-pink-800',
+      education: 'bg-indigo-100 text-indigo-800',
+      travel: 'bg-cyan-100 text-cyan-800',
+      other: 'bg-gray-100 text-gray-800',
+    };
+    return colors[category.toLowerCase()] || colors.other;
+  };
+
+  const getFrequencyColor = (frequency: string) => {
+    const colors: Record<string, string> = {
+      daily: 'bg-red-100 text-red-800',
+      weekly: 'bg-yellow-100 text-yellow-800',
+      monthly: 'bg-green-100 text-green-800'
+    };
+    return colors[frequency] || 'bg-gray-100 text-gray-800';
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const recurringData = {
+      title: formData.title,
+      amount: parseFloat(formData.amount),
+      category: formData.category.toLowerCase(),
+      frequency: formData.frequency,
+      start_date: formData.start_date,
+      end_date: formData.end_date || null,
+      next_date: formData.start_date,
+      is_active: true,
+      description: formData.description
+    };
+
+    if (editingRecurring) {
+      handleUpdate(recurringData);
+    } else {
+      handleCreate(recurringData);
+    }
+  };
+
+  const handleCreate = async (data: any) => {
+    try {
+      const newRecurring = await recurringApi.createRecurringExpense(data);
+      // Ensure recurringExpenses is an array before spreading
+      const currentExpenses = Array.isArray(recurringExpenses) ? recurringExpenses : [];
+      setRecurringExpenses([...currentExpenses, newRecurring]);
+      resetForm();
+      toast.success('Recurring expense created successfully!');
+    } catch (err) {
+      console.error('Failed to create recurring expense:', err);
+      setError('Failed to create recurring expense');
+      toast.error('Failed to create recurring expense');
+    }
+  };
+
+  const handleUpdate = async (data: any) => {
+    if (!editingRecurring) return;
+    
+    try {
+      const updated = await recurringApi.updateRecurringExpense(editingRecurring.id, data);
+      // Ensure recurringExpenses is an array
+      const currentExpenses = Array.isArray(recurringExpenses) ? recurringExpenses : [];
+      setRecurringExpenses(currentExpenses.map(r => 
+        r.id === editingRecurring.id ? updated : r
+      ));
+      resetForm();
+      toast.success('Recurring expense updated successfully!');
+    } catch (err) {
+      console.error('Failed to update recurring expense:', err);
+      setError('Failed to update recurring expense');
+      toast.error('Failed to update recurring expense');
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      amount: '',
+      category: '',
+      frequency: 'monthly',
+      start_date: new Date().toISOString().split('T')[0],
+      end_date: '',
+      description: ''
+    });
+    setShowAddForm(false);
+    setEditingRecurring(null);
+  };
+
+  const handleEdit = (recurring: RecurringExpense) => {
+    setEditingRecurring(recurring);
+    setFormData({
+      title: recurring.title,
+      amount: recurring.amount.toString(),
+      category: recurring.category,
+      frequency: recurring.frequency,
+      start_date: recurring.start_date,
+      end_date: recurring.end_date || '',
+      description: recurring.description || ''
+    });
+    setShowAddForm(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Are you sure you want to delete this recurring expense?')) {
+      deleteRecurring(id);
+    }
+  };
+
+  const deleteRecurring = async (id: string) => {
+    try {
+      await recurringApi.deleteRecurringExpense(id);
+      // Ensure recurringExpenses is an array
+      const currentExpenses = Array.isArray(recurringExpenses) ? recurringExpenses : [];
+      setRecurringExpenses(currentExpenses.filter(expense => expense.id !== id));
+      toast.success('Recurring expense deleted successfully!');
+    } catch (err) {
+      console.error('Failed to delete recurring expense:', err);
+      setError('Failed to delete recurring expense');
+      toast.error('Failed to delete recurring expense');
+    }
+  };
+
+  const toggleActive = (id: string) => {
+    toggleRecurringActive(id);
+  };
+
+  const toggleRecurringActive = async (id: string) => {
+    try {
+      const updated = await recurringApi.toggleActive(id);
+      // Ensure recurringExpenses is an array
+      const currentExpenses = Array.isArray(recurringExpenses) ? recurringExpenses : [];
+      setRecurringExpenses(currentExpenses.map(expense =>
+        expense.id === id ? updated : expense
+      ));
+      toast.success(`Recurring expense ${updated.is_active ? 'activated' : 'paused'}!`);
+    } catch (err) {
+      console.error('Failed to toggle recurring expense:', err);
+      setError('Failed to toggle recurring expense');
+      toast.error('Failed to toggle recurring expense');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-full">
+          <div className="animate-spin h-8 w-8 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout>
+      <div className="space-y-6 sm:space-y-8">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+            {error}
+          </div>
+        )}
+
+        {/* Header */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-1">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Recurring Expenses</h1>
+            <p className="text-gray-600 dark:text-gray-400">Manage your recurring transactions and subscriptions</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <button
+              onClick={async () => {
+                try {
+                  setIsGenerating(true);
+                  console.log('[Recurring] Generating recurring expenses...');
+                  
+                  const result = await recurringApi.generateRecurringExpenses();
+                  
+                  console.log('[Recurring] Generation result:', result);
+                  toast.success(`Generated ${result.generated_count} expense(s)!`);
+                  
+                  // Refresh both recurring list and main expenses
+                  await Promise.all([
+                    fetchRecurringExpenses(),
+                    refreshExpenses()
+                  ]);
+                  
+                  console.log('[Recurring] Data refreshed after generation');
+                } catch (error) {
+                  console.error('[Recurring] Failed to generate expenses:', error);
+                  toast.error('Failed to generate expenses');
+                } finally {
+                  setIsGenerating(false);
+                }
+              }}
+              disabled={isGenerating}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw className={`w-4 h-4 flex-shrink-0 ${isGenerating ? 'animate-spin' : ''}`} />
+              <span className="whitespace-nowrap">{isGenerating ? 'Generating...' : 'Generate Expenses'}</span>
+            </button>
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="w-4 h-4 flex-shrink-0" />
+              <span className="whitespace-nowrap">Add Recurring</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Add Form Modal */}
+        {(showAddForm || editingRecurring) && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 w-full max-w-md shadow-2xl border border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                {editingRecurring ? 'Edit Recurring Expense' : 'Add Recurring Expense'}
+              </h3>
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    placeholder="e.g., Netflix Subscription"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount</label>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      step="0.01"
+                      value={formData.amount}
+                      onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      placeholder="0.00"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
+                    <select
+                      required
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      aria-label="Select category"
+                    >
+                      <option value="">Select</option>
+                      {categories.map(category => (
+                        <option key={category} value={category}>{category}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Frequency</label>
+                    <select
+                      value={formData.frequency}
+                      onChange={(e) => setFormData({ ...formData, frequency: e.target.value as any })}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      aria-label="Select frequency"
+                    >
+                      {frequencies.map(freq => (
+                        <option key={freq.value} value={freq.value}>{freq.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date</label>
+                    <input
+                      type="date"
+                      required
+                      value={formData.start_date}
+                      onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      title="Select start date for recurring expense"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">End Date (Optional)</label>
+                  <input
+                    type="date"
+                    value={formData.end_date}
+                    onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    placeholder="Leave empty for indefinite"
+                    title="Select end date for recurring expense"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Leave empty if this is an ongoing subscription</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description (Optional)</label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    placeholder="Add any additional details..."
+                  />
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    {editingRecurring ? 'Update Recurring' : 'Add Recurring'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resetForm();
+                    }}
+                    className="flex-1 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 py-2 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Recurring Expenses List */}
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+          {!Array.isArray(recurringExpenses) || recurringExpenses.length === 0 ? (
+            <div className="text-center py-12 px-4">
+              <RefreshCw className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No recurring expenses</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">Set up recurring transactions to automate your expense tracking.</p>
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Add Your First Recurring Expense
+              </button>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-200 dark:divide-gray-800">
+              {Array.isArray(recurringExpenses) && recurringExpenses.map((expense) => (
+                <div key={expense.id} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">{expense.title}</h3>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(expense.category)}`}>
+                          {expense.category.charAt(0).toUpperCase() + expense.category.slice(1)}
+                        </span>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getFrequencyColor(expense.frequency)}`}>
+                          {expense.frequency.charAt(0).toUpperCase() + expense.frequency.slice(1)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                        <span className="font-medium text-gray-900 dark:text-white">{formatIndianCurrency(expense.amount)}</span>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>Next: {new Date(expense.next_date).toLocaleDateString()}</span>
+                        </div>
+                        {expense.end_date && (
+                          <span className="text-gray-500 dark:text-gray-400">
+                            Ends: {new Date(expense.end_date).toLocaleDateString()}
+                          </span>
+                        )}
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          expense.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {expense.is_active ? 'Active' : 'Paused'}
+                        </span>
+                      </div>
+                      {expense.description && (
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">{expense.description}</p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => toggleActive(expense.id)}
+                        className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                          expense.is_active 
+                            ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' 
+                            : 'bg-green-100 text-green-800 hover:bg-green-200'
+                        }`}
+                      >
+                        {expense.is_active ? 'Pause' : 'Resume'}
+                      </button>
+                      <button 
+                        onClick={() => handleEdit(expense)}
+                        className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                        title="Edit recurring expense"
+                        aria-label="Edit recurring expense"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(expense.id)}
+                        className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                        title="Delete recurring expense"
+                        aria-label="Delete recurring expense"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
+export default Recurring;
